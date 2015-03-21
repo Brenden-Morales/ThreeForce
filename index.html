@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html style="width:100%;height:100%;margin:0px;padding:0px;overflow:hidden">
+<script type="text/javascript" src="./three/three.js"></script>
+<script type="text/javascript" src="./three/OrbitControls.js"></script>
+<script type="text/javascript" src="./three/stats.min.js"></script>
+<script type="text/javascript" src="./simulate/shaderTexture.js"></script>
+<script tyep="text/javascript" src="./simulate/pingpong.js"></script>
+<script type="text/javascript" src="./simulate/simulator.js"></script>
+<script type="text/javascript" src="./simulate/velocitySimulator.js"></script>
+<script tyep="text/javascript" src="./textures/NodeProcessor.js"></script>
+<script type="text/javascript" src="./main.js"></script>
+
+<!-- pass through vertex shader -->
+<script id="passThroughVertex" type="x-shader/x-vertex">
+    void main()	{
+        gl_Position = vec4( position, 1.0 );
+    }
+</script>
+
+<!-- pass through fragment shader -->
+<script id="passThroughFragment" type="x-shader/x-fragment">
+    uniform vec2 resolution;
+    //input texture from the previous run of this shader on the ping / pong
+    uniform sampler2D texture;
+    void main()	{
+        vec2 uv = gl_FragCoord.xy / resolution.xy;
+        vec3 color = texture2D( texture, uv ).xyz;
+        gl_FragColor = vec4( color, 1.0 );
+    }
+</script>
+
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body style="width:100%;height:100%;margin:0px;padding:0px;overflow:hidden" onload="initialize()">
+</body>
+</html>
