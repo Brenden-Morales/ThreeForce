@@ -6,7 +6,6 @@
 <script type="text/javascript" src="./simulate/shaderTexture.js"></script>
 <script tyep="text/javascript" src="./simulate/pingpong.js"></script>
 <script type="text/javascript" src="./simulate/simulator.js"></script>
-<script type="text/javascript" src="./simulate/velocitySimulator.js"></script>
 <script tyep="text/javascript" src="./textures/NodeProcessor.js"></script>
 <script type="text/javascript" src="./main.js"></script>
 
@@ -27,6 +26,49 @@
         vec3 color = texture2D( texture, uv ).xyz;
         gl_FragColor = vec4( color, 1.0 );
     }
+</script>
+
+<script type="x-shader/x-vertex" id="cloudVertex">
+    attribute vec3 customColor;
+    attribute float size;
+    attribute vec2 texPos;
+
+    uniform float mainTexWidth;
+
+    uniform sampler2D positions;
+    uniform sampler2D edgeIndices;
+    uniform sampler2D edges;
+
+    varying vec3 vColor;
+
+    void main() {
+
+        //get the position of this node from the texture
+        vec4 currentNodePosition = texture2D(positions,texPos);
+
+        //get the edge indices of this node from the texture
+        vec4 currentNodeEdgeIndices = texture2D(edgeIndices,texPos);
+
+        //lets loop through all the nodes and make them push against eachother
+        float startX = 0;
+        float startY = 0;
+
+        vColor = customColor;
+        vec4 mvPosition = modelViewMatrix * vec4( 1.0,1.0,1.0, 1.0 );
+        gl_PointSize = size * ( 300.0 / length( mvPosition.xyz ) );
+
+        gl_Position = projectionMatrix * mvPosition;
+    }
+</script>
+
+<script type="x-shader/x-fragment" id="cloudFragment">
+
+    varying vec3 vColor;
+
+    void main() {
+        gl_FragColor = vec4(vColor,1.0);
+    }
+
 </script>
 
 <head lang="en">

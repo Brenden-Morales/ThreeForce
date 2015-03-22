@@ -22,7 +22,7 @@ var NodeProcessor = function(options) {
                 textureArray[i] = -1;
             }
         }
-        return textureArray;
+        return this.makeThreeTexture(textureArray,width);
     };
 
     self.makeEdgePointerTexture = function(nodes){
@@ -52,7 +52,7 @@ var NodeProcessor = function(options) {
         for(var i = nodes.length * 4; i < textureArray.length; i ++){
             textureArray[i] = -1;
         }
-        return textureArray;
+        return this.makeThreeTexture(textureArray,width);
     };
 
     self.makeEdgeTexture = function(nodes){
@@ -74,7 +74,7 @@ var NodeProcessor = function(options) {
         for(var i = currentIndex; i < textureArray.length; i ++){
             textureArray[i] = -1;
         }
-        return textureArray;
+        return this.makeThreeTexture(textureArray,width);
     };
 
     return self;

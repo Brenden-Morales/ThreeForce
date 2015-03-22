@@ -5,6 +5,12 @@ var scene;
 var renderer;
 var stats;
 var NP;
+var NodePositions;
+var EdgeIndices;
+var Edges;
+var texSize;
+
+var gridSize = 40;
 
 var simulate = false;
 
@@ -46,9 +52,83 @@ var initialize = function(){
 
     //process nodes
     NP = new NodeProcessor();
-    console.log(NP.makePositionTexture(nodes));
-    console.log(NP.makeEdgePointerTexture(nodes));
-    console.log(NP.makeEdgeTexture(nodes));
+    NodePositions = NP.makePositionTexture(nodes);
+    EdgeIndices = NP.makeEdgePointerTexture(nodes);
+    Edges = NP.makeEdgeTexture(nodes);
+    texSize = NP.halfTextureSize(nodes);
+
+
+    var cloudAttributes = {
+        size:        { type: 'f', value: null },
+        customColor: { type: 'c', value: null },
+        texPos : {type : "v2", value : null}
+    };
+
+    var cloudUniforms = {
+        positions:   { type: "t", value: null },
+        edgeIndices :   {type : "t", value: EdgeIndices},
+        edges : {type : "t", value : Edges},
+        mainTexWidth : {type: "f", value : NP.halfTextureSize(nodes)}
+    };
+
+    var cloudMaterial = new THREE.ShaderMaterial( {
+        uniforms:       cloudUniforms,
+        attributes:     cloudAttributes,
+        vertexShader:   document.getElementById( 'cloudVertex' ).textContent,
+        fragmentShader: document.getElementById( 'cloudFragment' ).textContent,
+        blending:       THREE.AdditiveBlending,
+        depthTest:      false,
+        transparent:    true
+    });
+
+    var makeParticles = function(){
+        //make a particle system with buffer geometry
+        var geometry = new THREE.BufferGeometry();
+
+        var positions = new Float32Array( nodes.length * 3 );
+        var values_color = new Float32Array( nodes.length * 3 );
+        var values_size = new Float32Array( nodes.length );
+        var indices = new Float32Array(nodes.length * 2);
+
+        var color = new THREE.Color();
+
+        for( var v = 0; v < nodes.length; v++ ) {
+
+            //wow this is dumb, this is how glsl indexes texture positions, as a fraction of the overall length
+            //instead of something sane like an integer based index
+            indices[v * 2] = (Math.floor(v / texSize)) / texSize;
+            indices[(v * 2) + 1] = (v % texSize) / texSize;
+            //nevermind that's actually pretty smart?
+
+            //whatever, copypasta'ed code
+            values_size[ v ] = 0.9;
+
+            //positions don't matter since we'll be taking those from the texture anyways
+            positions[ v * 3 ] = Math.random() * gridSize - gridSize / 2;
+            positions[ v * 3 + 1 ] = Math.random() * gridSize - gridSize / 2;
+            positions[ v * 3 + 2 ] = Math.random() * gridSize - gridSize / 2;
+
+            //color, whatever
+            color.setHSL( v / nodes.length, 1.0, 0.5 );
+            values_color[ v * 3 ] = color.r;
+            values_color[ v * 3 + 1 ] = color.g;
+            values_color[ v * 3 + 2 ] = color.b;
+
+        }
+
+        geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+        geometry.addAttribute( 'customColor', new THREE.BufferAttribute( values_color, 3 ) );
+        geometry.addAttribute( 'size', new THREE.BufferAttribute( values_size, 1 ) );
+        geometry.addAttribute( 'texPos', new THREE.BufferAttribute( indices, 2 ) );
+        geometry.computeBoundingBox();
+
+        cloud = new THREE.PointCloud( geometry, cloudMaterial );
+
+        scene.add( cloud );
+    };
+
+    makeParticles();
+
 
 
     //stats
