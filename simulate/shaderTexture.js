@@ -36,28 +36,6 @@ var ShaderTexture = function(options){
     return self;
 };
 
-//always the same camera, always at z=1, pointing to origin
-//ShaderTexture.prototype.camera = new THREE.Camera();
-//ShaderTexture.prototype.camera.position.z = 1;
-
-//always the same scene, the texture of the mesh is the only thing that changes
-//ShaderTexture.prototype.scene = new THREE.Scene();
-
-////always the same passthrough shader, the texture changes
-//ShaderTexture.prototype.passThroughShader = new THREE.ShaderMaterial({
-//    uniforms: {
-//        time: { type: "f", value: 1.0 },
-//        resolution: { type: "v2", value: null },
-//        texture: { type: "t", value: null }
-//    },
-//    vertexShader: "void main()	{\ngl_Position = vec4( position, 1.0 );\n}",
-//    fragmentShader: "uniform vec2 resolution;\nuniform float time;\nuniform sampler2D texture;\nvoid main()	{\nvec2 uv = gl_FragCoord.xy / resolution.xy;\nvec3 color = texture2D( texture, uv ).xyz;\ngl_FragColor = vec4( color, 1.0 );}"
-//});
-
-//always the same mesh
-//ShaderTexture.prototype.mesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 2, 2 ), this.passThroughShader );
-////add it to the scene
-//ShaderTexture.prototype.scene.add(ShaderTexture.prototype.mesh);
 
 //take an input texture, render it once and then output it so we can use it in shaders (I think)
 ShaderTexture.prototype.initializeTexture = function ( input, output ) {

@@ -5,10 +5,10 @@ var scene;
 var renderer;
 var stats;
 var NP;
-var NodePositions;
 var EdgeIndices;
 var Edges;
 var texSize;
+var sim;
 
 var gridSize = 40;
 
@@ -52,10 +52,24 @@ var initialize = function(){
 
     //process nodes
     NP = new NodeProcessor();
-    NodePositions = NP.makePositionTexture(nodes);
+    var InitialPositions = NP.makePositionTexture(nodes);
     EdgeIndices = NP.makeEdgePointerTexture(nodes);
     Edges = NP.makeEdgeTexture(nodes);
     texSize = NP.halfTextureSize(nodes);
+
+    sim = new PingPong({
+        renderer : renderer,
+        width : texSize,
+        particleShaderId : "nodeFragment",
+        uniforms : {
+            positions : {type : "t", value : null},
+            edgeIndices : {type : "t", value : EdgeIndices},
+            edges : {type : "t", value : Edges},
+            delta : {type : "f", value : null},
+            textureWidth : {type : "f", value : texSize}
+        }
+    });
+    sim.initialize(InitialPositions);
 
 
     var cloudAttributes = {
@@ -172,7 +186,10 @@ function render(){
     var previousTime = now;
 
     if(simulate){
-
+        sim.renderTexture({
+            delta : delta,
+            positions : sim.activeTexture
+        })
     }
     renderer.render(scene,camera);
 }

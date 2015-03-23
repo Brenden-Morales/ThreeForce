@@ -7,8 +7,6 @@ var PingPong = function(options) {
     ShaderTexture.call(self,options);
 
     //passed in variables
-    self.particles =options.width * options.width;
-    self.bounds = options.bounds;
     self.width = options.width;
     self.particleShaderId = options.particleShaderId;
 
@@ -20,11 +18,18 @@ var PingPong = function(options) {
     //the texture that's currently active / has been pinged / ponged to
     self.activeTexture;
 
+    //set up the fragment shaders loopdelta based on the width of the texture
+    var shaderText = document.getElementById(self.particleShaderId).text;
+    var loopDeltaText = "const float loopDelta = 1.0 /"
+    var loopDeltaIndex = shaderText.indexOf(loopDeltaText) + loopDeltaText.length;
+    shaderText = shaderText.substr(0,loopDeltaIndex) + self.width + ".0" + shaderText.substr(loopDeltaIndex,shaderText.length);
+
+
     //actual shader for the particles
     self.particleShader = new THREE.ShaderMaterial({
         uniforms : options.uniforms,
         vertexShader: document.getElementById( 'passThroughVertex' ).textContent,
-        fragmentShader: document.getElementById( self.particleShaderId ).textContent
+        fragmentShader: shaderText
     });
 
     //render function
@@ -34,11 +39,11 @@ var PingPong = function(options) {
         //decide if we're pinging or ponging
         if(this.ping){
             //we take from pong, render to ping
-            this.particleShader.uniforms.texture.value = this.pongTexture;
+            this.particleShader.uniforms.positions.value = this.pongTexture;
         }
         else{
             //take from ping, render to pong
-            this.particleShader.uniforms.texture.value = this.pingTexture;
+            this.particleShader.uniforms.positions.value = this.pingTexture;
         }
         //update all the uniforms
         for(var prop in data){
@@ -61,17 +66,14 @@ var PingPong = function(options) {
         }
     };
 
-    self.initialize = function(){
-
-        //create the initial texture
-        var initialParticleTexture = this.makeTexture();
+    self.initialize = function(initialTexture){
 
         //create the render targets
         this.pingTexture = this.getRenderTarget(THREE.RGBAFormat,this.width);
         this.pongTexture = this.pingTexture.clone();
 
         //render them once for some reason? (why not?)
-        this.initializeTexture(initialParticleTexture,this.pingTexture);
+        this.initializeTexture(initialTexture,this.pingTexture);
         this.initializeTexture(this.pingTexture,this.pongTexture);
     };
 

@@ -28,30 +28,46 @@
     }
 </script>
 
-<script type="x-shader/x-vertex" id="cloudVertex">
-    attribute vec3 customColor;
-    attribute float size;
-    attribute vec2 texPos;
-
-    uniform float mainTexWidth;
+<script id="nodeFragment" type="x-shader/x-fragment">
+    uniform vec2 resolution;
+    uniform float delta;
+    uniform float textureWidth;
 
     uniform sampler2D positions;
     uniform sampler2D edgeIndices;
     uniform sampler2D edges;
 
+    //we set this text in javascript based on the size of the textureWidth
+    const float loopDelta = 1.0 /;
+
+    void main()	{
+
+        //get the position of this node in the "main" textures
+        vec2 mainTextureCoord = gl_FragCoord.xy / resolution.xy;
+
+        //get the positions of this node (in space) from the texture
+        vec4 currentNodePosition = texture2D(positions, mainTextureCoord);
+
+        //compare against every other node
+        for(float currentX = 0.0; currentX < 1.0; currentX += loopDelta){
+            for(float currentY = 0.0; currentY < 1.0; currentY += loopDelta){
+
+            }
+        }
+
+
+        gl_FragColor = vec4(currentNodePosition.x + 0.01, currentNodePosition.y + 0.01, currentNodePosition.z + 0.01, 0 );
+
+    }
+</script>
+
+<script type="x-shader/x-vertex" id="cloudVertex">
+    attribute vec3 customColor;
+    attribute float size;
+
     varying vec3 vColor;
 
     void main() {
-
-        //get the position of this node from the texture
-        vec4 currentNodePosition = texture2D(positions,texPos);
-
-        //get the edge indices of this node from the texture
-        vec4 currentNodeEdgeIndices = texture2D(edgeIndices,texPos);
-
-        //lets loop through all the nodes and make them push against eachother
-        float startX = 0;
-        float startY = 0;
 
         vColor = customColor;
         vec4 mvPosition = modelViewMatrix * vec4( 1.0,1.0,1.0, 1.0 );
