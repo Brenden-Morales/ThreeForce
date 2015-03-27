@@ -60,6 +60,7 @@ var initialize = function(){
     sim = new PingPong({
         renderer : renderer,
         width : texSize,
+        edgeTexWidth : NP.edgeTextureSize(nodes),
         particleShaderId : "nodeFragment",
         uniforms : {
             positions : {type : "t", value : null},

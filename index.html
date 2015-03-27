@@ -38,7 +38,10 @@
     uniform sampler2D edges;
 
     //we set this text in javascript based on the size of the textureWidth
-    const float loopDelta = 1.0 /;
+    const float mainTexDelta = 1.0 /;
+
+    //sete this text in javascript as well based on the size of the edge texture width(may be smaller)
+    const float edgeTexDelta = 1.0 /;
 
     void main()	{
 
@@ -48,15 +51,39 @@
         //get the positions of this node (in space) from the texture
         vec4 currentNodePosition = texture2D(positions, mainTextureCoord);
 
-        //compare against every other node
-        for(float currentX = 0.0; currentX < 1.0; currentX += loopDelta){
-            for(float currentY = 0.0; currentY < 1.0; currentY += loopDelta){
+        //the deltas for this node
+        float deltaX = 0.0;
+        float deltaY = 0.0;
+        float deltaZ = 0.0;
 
+        //compare against every other node
+        for(float currentX = 0.0; currentX < 1.0; currentX += mainTexDelta){
+            for(float currentZ= 0.0; currentZ< 1.0; currentZ+= mainTexDelta){
+                //continue if we're evaluating against the current node
+                if(currentX == mainTextureCoord.x){
+                    if(currentZ== mainTextureCoord.y){
+                        continue;
+                    }
+                }
+
+                //get the node we're comparing againsts position
+                vec2 currentCoord = vec2(currentX,currentZ);
+                vec4 compareNodePosition = texture2D(positions,currentCoord);
+
+                //if nodes are in the same spot, jiggle them
+                if(compareNodePosition.x == currentNodePosition.x){
+                    if(compareNodePosition.y == currentNodePosition.y){
+                        if(compareNodePosition.z == currentNodePosition.z){
+                            deltaX += currentX;
+                            deltaZ += currentZ;
+                        }
+                    }
+                }
             }
         }
 
 
-        gl_FragColor = vec4(currentNodePosition.x + 0.01, currentNodePosition.y + 0.01, currentNodePosition.z + 0.01, 0 );
+        gl_FragColor = vec4(currentNodePosition.x + deltaX, currentNodePosition.y + deltaY, currentNodePosition.z + deltaZ, 0 );
 
     }
 </script>

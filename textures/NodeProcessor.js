@@ -56,12 +56,7 @@ var NodeProcessor = function(options) {
     };
 
     self.makeEdgeTexture = function(nodes){
-        //need to get the size of the edge texture
-        var edgesCount = 0;
-        for(var i = 0; i < nodes.length; i ++){
-            edgesCount += nodes[i].length;
-        }
-        var width = this.halfTextureSize(Math.ceil(edgesCount/4));
+        var width = this.edgeTextureSize(nodes);
         //straight array of the edges in the graph in order
         var textureArray = new Float32Array( width * width * 4 );
         var currentIndex = 0;
@@ -88,6 +83,14 @@ NodeProcessor.prototype.halfTextureSize = function(num){
     return power / 2 > 1 ? power / 2 : 2;
 };
 
+NodeProcessor.prototype.edgeTextureSize = function(nodes){
+    var edgesCount = 0;
+    for(var i = 0; i < nodes.length; i ++){
+        edgesCount += nodes[i].length;
+    }
+    return this.halfTextureSize(Math.ceil(edgesCount/4));
+};
+
 NodeProcessor.prototype.makeThreeTexture = function(tex,width){
     var texture = new THREE.DataTexture( tex, width, width, THREE.RGBAFormat, THREE.FloatType );
     texture.minFilter = THREE.NearestFilter;
@@ -95,4 +98,4 @@ NodeProcessor.prototype.makeThreeTexture = function(tex,width){
     texture.needsUpdate = true;
     texture.flipY = false;
     return texture;
-}
+};

@@ -8,6 +8,7 @@ var PingPong = function(options) {
 
     //passed in variables
     self.width = options.width;
+    self.edgeTexWidth = options.edgeTexWidth;
     self.particleShaderId = options.particleShaderId;
 
     //the two textures we'll be using for "ping ponging"
@@ -18,11 +19,17 @@ var PingPong = function(options) {
     //the texture that's currently active / has been pinged / ponged to
     self.activeTexture;
 
-    //set up the fragment shaders loopdelta based on the width of the texture
+    //set up the fragment shaders mainTexDelta based on the width of the texture
     var shaderText = document.getElementById(self.particleShaderId).text;
-    var loopDeltaText = "const float loopDelta = 1.0 /"
+    var loopDeltaText = "const float mainTexDelta = 1.0 /"
     var loopDeltaIndex = shaderText.indexOf(loopDeltaText) + loopDeltaText.length;
     shaderText = shaderText.substr(0,loopDeltaIndex) + self.width + ".0" + shaderText.substr(loopDeltaIndex,shaderText.length);
+
+    //now for the edge texture
+    var edgeDeltaText = "const float edgeTexDelta = 1.0 /";
+    var edgeDeltaIndex = shaderText.indexOf(edgeDeltaText) + edgeDeltaText.length;
+    shaderText = shaderText.substr(0,edgeDeltaIndex) + self.edgeTexWidth + ".0" + shaderText.substr(edgeDeltaIndex,shaderText.length);
+
 
 
     //actual shader for the particles
