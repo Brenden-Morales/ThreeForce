@@ -68,14 +68,25 @@
                 vec2 currentCoord = vec2(currentX,currentZ);
                 vec4 compareNodePosition = texture2D(positions,currentCoord);
 
-                //get the difference between the nodes
-                nodeDiff += currentNodePosition - compareNodePosition;
+                //if they're close enough together, compute forces
+                float nodeDistance = distance(compareNodePosition,currentNodePosition);
+                if(nodeDistance < 20.0){
+                    //get the difference between the nodes
+                    nodeDiff += currentNodePosition - compareNodePosition;
+                }
+
             }
         }
 
-        nodeDiff = normalize(nodeDiff);
+        if(nodeDiff.x != 0.0 && nodeDiff.y != 0.0 && nodeDiff.z != 0.0){
+            nodeDiff = normalize(nodeDiff);
+            gl_FragColor = vec4(currentNodePosition.x + nodeDiff.x * 0.1, currentNodePosition.y + nodeDiff.y * 0.1, currentNodePosition.z + nodeDiff.z * 0.1, 0 );
+        }
+        else{
+            gl_FragColor = vec4(currentNodePosition.x, currentNodePosition.y , currentNodePosition.z, 0 );
+        }
 
-        gl_FragColor = vec4(currentNodePosition.x + nodeDiff.x, currentNodePosition.y + nodeDiff.y, currentNodePosition.z + nodeDiff.z, 0 );
+
 
     }
 </script>
