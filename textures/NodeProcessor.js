@@ -15,7 +15,7 @@ var NodeProcessor = function(options) {
         for(var i = 0; i < textureArray.length; i ++){
             if(i < nodes.length * 4){
                 //0 for nodes / pixels we're actually using
-                textureArray[i] = 0;
+                textureArray[i] = Math.random() * 10;
             }
             else{
                 //-1 for ones we're not

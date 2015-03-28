@@ -75,6 +75,8 @@ var PingPong = function(options) {
 
     self.initialize = function(initialTexture){
 
+        this.activeTexture = initialTexture;
+
         //create the render targets
         this.pingTexture = this.getRenderTarget(THREE.RGBAFormat,this.width);
         this.pongTexture = this.pingTexture.clone();

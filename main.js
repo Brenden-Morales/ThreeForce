@@ -10,6 +10,8 @@ var Edges;
 var texSize;
 var sim;
 
+var cloudMaterial;
+
 var gridSize = 40;
 
 var simulate = false;
@@ -67,28 +69,23 @@ var initialize = function(){
             edgeIndices : {type : "t", value : EdgeIndices},
             edges : {type : "t", value : Edges},
             delta : {type : "f", value : null},
-            textureWidth : {type : "f", value : texSize}
+            textureWidth : {type : "f", value : texSize},
+            resolution : {type : "v2", value : new THREE.Vector2(texSize,texSize)}
         }
     });
     sim.initialize(InitialPositions);
 
 
-    var cloudAttributes = {
-        size:        { type: 'f', value: null },
-        customColor: { type: 'c', value: null },
-        texPos : {type : "v2", value : null}
-    };
 
-    var cloudUniforms = {
-        positions:   { type: "t", value: null },
-        edgeIndices :   {type : "t", value: EdgeIndices},
-        edges : {type : "t", value : Edges},
-        mainTexWidth : {type: "f", value : NP.halfTextureSize(nodes)}
-    };
-
-    var cloudMaterial = new THREE.ShaderMaterial( {
-        uniforms:       cloudUniforms,
-        attributes:     cloudAttributes,
+    cloudMaterial = new THREE.ShaderMaterial( {
+        uniforms:{
+            positionTexture:   { type: "t", value: null }
+        },
+        attributes:{
+            size:        { type: 'f', value: null },
+            customColor: { type: 'c', value: null },
+            texPos : {type : "v2", value : null}
+        },
         vertexShader:   document.getElementById( 'cloudVertex' ).textContent,
         fragmentShader: document.getElementById( 'cloudFragment' ).textContent,
         blending:       THREE.AdditiveBlending,
@@ -103,7 +100,7 @@ var initialize = function(){
         var positions = new Float32Array( nodes.length * 3 );
         var values_color = new Float32Array( nodes.length * 3 );
         var values_size = new Float32Array( nodes.length );
-        var indices = new Float32Array(nodes.length * 2);
+        var texPoses = new Float32Array(nodes.length * 2);
 
         var color = new THREE.Color();
 
@@ -111,12 +108,12 @@ var initialize = function(){
 
             //wow this is dumb, this is how glsl indexes texture positions, as a fraction of the overall length
             //instead of something sane like an integer based index
-            indices[v * 2] = (Math.floor(v / texSize)) / texSize;
-            indices[(v * 2) + 1] = (v % texSize) / texSize;
+            texPoses[v * 2] = (Math.floor(v / texSize)) / texSize;
+            texPoses[(v * 2) + 1] = (v % texSize) / texSize;
             //nevermind that's actually pretty smart?
 
             //whatever, copypasta'ed code
-            values_size[ v ] = 0.9;
+            values_size[ v ] = 5.0;
 
             //positions don't matter since we'll be taking those from the texture anyways
             positions[ v * 3 ] = Math.random() * gridSize - gridSize / 2;
@@ -134,7 +131,7 @@ var initialize = function(){
         geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
         geometry.addAttribute( 'customColor', new THREE.BufferAttribute( values_color, 3 ) );
         geometry.addAttribute( 'size', new THREE.BufferAttribute( values_size, 1 ) );
-        geometry.addAttribute( 'texPos', new THREE.BufferAttribute( indices, 2 ) );
+        geometry.addAttribute( 'texPos', new THREE.BufferAttribute( texPoses, 2 ) );
         geometry.computeBoundingBox();
 
         cloud = new THREE.PointCloud( geometry, cloudMaterial );
@@ -190,7 +187,8 @@ function render(){
         sim.renderTexture({
             delta : delta,
             positions : sim.activeTexture
-        })
+        });
+        cloudMaterial.uniforms.positionTexture.value = sim.activeTexture;
     }
     renderer.render(scene,camera);
 }
