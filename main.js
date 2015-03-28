@@ -11,6 +11,7 @@ var texSize;
 var sim;
 
 var cloudMaterial;
+var edgeMaterial;
 
 var gridSize = 40;
 
@@ -140,6 +141,73 @@ var initialize = function(){
     };
 
     makeParticles();
+
+    edgeMaterial = new THREE.ShaderMaterial( {
+        uniforms:{
+            positionTexture:   { type: "t", value: null },
+            color : {type : 'c', value : new THREE.Color(0x999999)}
+        },
+        attributes:{
+            texPos : {type : "v2", value : null}
+        },
+        vertexShader:   document.getElementById( 'edgeVertex' ).textContent,
+        fragmentShader: document.getElementById( 'edgeFragment' ).textContent,
+        blending:       THREE.AdditiveBlending,
+        depthTest:      false,
+        transparent:    true
+    });
+
+    var makeEdges = function(){
+        var geometry = new THREE.BufferGeometry();
+        //get the number of edges
+        var edges = 0;
+        for(var i = 0; i < nodes.length; i ++){
+            edges += nodes[i].length;
+        }
+
+        //two vec3s per line
+        var positions = new Float32Array(edges * 2 * 3);
+        //two texture indices per line
+        var textureIndices = new Float32Array(edges * 2 * 2);
+
+        //keeps track of which vertex we're on
+        var currentVertex = 0;
+
+        for(var i = 0; i < nodes.length; i ++){
+            //get the starting texture position (will be the same for all in this node)
+            var texStartX = (Math.floor(i / texSize)) / texSize;
+            var texStartY = (i % texSize) / texSize;
+
+            //now we get all the endpoints and put in the data
+            for(var j = 0; j < nodes[i].length; j ++){
+                //first do the start point
+                textureIndices[currentVertex * 2] = texStartX;
+                textureIndices[currentVertex * 2 + 1] = texStartY;
+                //position
+                positions[currentVertex * 3] = 0;
+                positions[currentVertex * 3 + 1] = 0;
+                positions[currentVertex * 3 + 2] = 0;
+                //go to next vertex
+                currentVertex++;
+                //first do the start point
+                textureIndices[currentVertex * 2] = (Math.floor(nodes[i][j]/ texSize)) / texSize;;
+                textureIndices[currentVertex * 2 + 1] = (nodes[i][j] % texSize) / texSize;
+                //position
+                positions[currentVertex * 3] = 0;
+                positions[currentVertex * 3 + 1] = 0;
+                positions[currentVertex * 3 + 2] = 0;
+                //go to the next vertex
+                currentVertex++;
+            }
+        }
+        geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+        geometry.addAttribute( 'texPos', new THREE.BufferAttribute( textureIndices, 2 ) );
+
+        var mesh = new THREE.Line( geometry, edgeMaterial );
+        scene.add( mesh );
+    };
+
+    makeEdges();
 
 
 

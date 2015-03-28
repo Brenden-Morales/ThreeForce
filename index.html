@@ -122,6 +122,51 @@
 
 </script>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script type="x-shader/x-vertex" id="edgeVertex">
+    attribute vec2 texPos;
+
+    uniform sampler2D positionTexture;
+    uniform vec3 color;
+
+    varying vec3 vColor;
+
+    void main() {
+
+        vec4 NodePosition = texture2D(positionTexture,texPos);
+
+        vColor = color;
+        vec4 mvPosition = modelViewMatrix * vec4( NodePosition.x,NodePosition.y,NodePosition.z, 1.0 );
+
+        gl_Position = projectionMatrix * mvPosition;
+    }
+</script>
+
+<script type="x-shader/x-fragment" id="edgeFragment">
+
+    varying vec3 vColor;
+
+    void main() {
+        gl_FragColor = vec4(vColor,1.0);
+    }
+
+</script>
+
 <head lang="en">
     <meta charset="UTF-8">
     <title></title>
