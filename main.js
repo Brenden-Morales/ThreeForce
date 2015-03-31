@@ -57,7 +57,9 @@ var initialize = function(){
     NP = new NodeProcessor();
     var InitialPositions = NP.makePositionTexture(nodes);
     EdgeIndices = NP.makeEdgePointerTexture(nodes);
+    console.log(EdgeIndices);
     Edges = NP.makeEdgeTexture(nodes);
+    console.log(Edges);
     texSize = NP.halfTextureSize(nodes);
 
     sim = new PingPong({
