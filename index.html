@@ -43,10 +43,10 @@
     //sete this text in javascript as well based on the size of the edge texture width(may be smaller)
     const float edgeTexDelta = 1.0 /;
 
-    vec3 samplePositionTexture(float textureIndex, vec4 currentNodePosition){
-        vec4 neighbor =  texture2D(positions, vec2((floor(textureIndex / textureWidth)) / textureWidth),((mod(textureIndex,textureWidth)) / textureWidth));
-        float distanceToNeighbor = distance(currentNodePosition,neighbor);
-        return neighbor.xyz - currentNodePosition.xyz;
+    vec3 samplePositionTexture(float textureIndex, vec4 curr){
+        vec4 neighbor =  texture2D(positions, vec2(((mod(textureIndex,textureWidth)) / textureWidth),(floor(textureIndex / textureWidth)) / textureWidth));
+        float distanceToNeighbor = distance(curr,neighbor);
+        return vec3(neighbor.x - curr.x, neighbor.y - curr.y, neighbor.z - curr.z);
     }
 
     void main()	{
@@ -60,98 +60,104 @@
         //the deltas for this node
         vec4 nodeDiff = vec4(0.0,0.0,0.0,0.0);
 
-        //compare against every other node
-        for(float currentX = 0.0; currentX < 1.0; currentX += mainTexDelta){
-            for(float currentZ= 0.0; currentZ< 1.0; currentZ+= mainTexDelta){
-                //continue if we're evaluating against the current node
-                if(currentX == mainTextureCoord.x){
-                    if(currentZ== mainTextureCoord.y){
+        if(!(currentNodePosition.x == -1.0 && currentNodePosition.y == -1.0 && currentNodePosition.z == -1.0 && currentNodePosition.w == -1.0)){
+
+            //compare against every other node
+            for(float currentX = 0.0; currentX < 1.0; currentX += mainTexDelta){
+                for(float currentZ= 0.0; currentZ< 1.0; currentZ+= mainTexDelta){
+                    //continue if we're evaluating against the current node
+                    if(currentX == mainTextureCoord.x){
+                        if(currentZ== mainTextureCoord.y){
+                            continue;
+                        }
+                    }
+
+                    //get the node we're comparing againsts position
+                    vec2 currentCoord = vec2(currentX,currentZ);
+                    vec4 compareNodePosition = texture2D(positions,currentCoord);
+                    //this is an empty / unused node in the texture
+                    if(compareNodePosition.w == -1.0){
                         continue;
                     }
-                }
 
-                //get the node we're comparing againsts position
-                vec2 currentCoord = vec2(currentX,currentZ);
-                vec4 compareNodePosition = texture2D(positions,currentCoord);
-                //this is an empty / unused node in the texture
-                if(compareNodePosition.w == -1.0){
-                    continue;
-                }
-
-                //if they're close enough together, compute forces
-                float nodeDistance = distance(compareNodePosition,currentNodePosition);
-                if(nodeDistance < 20.0){
-                    //get the difference between the nodes
-                    nodeDiff += currentNodePosition - compareNodePosition;
+                    //if they're close enough together, compute forces
+                    float nodeDistance = distance(compareNodePosition,currentNodePosition);
+                    if(nodeDistance < 20.0){
+                        //get the difference between the nodes
+                        nodeDiff += currentNodePosition - compareNodePosition;
+                    }
                 }
             }
-        }
 
-        //get the indices of the nodes connected to this node in the "edges" texture
-        vec4 currentNodeEdgeIndices = texture2D(edgeIndices, mainTextureCoord);
-        float beginCell = currentNodeEdgeIndices.x;
-        float endCell = currentNodeEdgeIndices.z;
-        float beginComponent = currentNodeEdgeIndices.y;
-        float endComponent = currentNodeEdgeIndices.w;
-
-        //keep track of which edge we're on
-        float edgeIndex = 0.0;
-
-        //loop through the edge tex
-        for(float currentY  = 0.0; currentY < 1.0; currentY += edgeTexDelta){
-            for(float currentX = 0.0; currentX < 1.0; currentX += edgeTexDelta){
+            //get the indices of the nodes connected to this node in the "edges" texture
+            vec4 currentNodeEdgeIndices = texture2D(edgeIndices, mainTextureCoord);
+            float beginCell = currentNodeEdgeIndices.x;
+            float endCell = currentNodeEdgeIndices.z;
+            float beginComponent = currentNodeEdgeIndices.y;
+            float endComponent = currentNodeEdgeIndices.w;
 
 
-                //we're in bounds, check individual tex coords
-                vec4 possibleNeighbors = texture2D(edges,vec2(currentX,currentY));
+            if(!(beginCell == endCell && beginComponent == endComponent)){
 
-                //check to see if we're in the right cell
-                if(edgeIndex >= beginCell && edgeIndex <= endCell){
+                //keep track of which edge we're on
+                float edgeIndex = 0.0;
+                //loop through the edge tex
+                for(float currentY  = 0.0; currentY < 1.0; currentY += edgeTexDelta){
+                    for(float currentX = 0.0; currentX < 1.0; currentX += edgeTexDelta){
 
-                    //check x component
-                    if((edgeIndex > beginCell && endComponent > 0.0) ||
-                        (edgeIndex == beginCell && beginComponent <= 0.0)){
-                        vec3 neighborDeltas = samplePositionTexture(possibleNeighbors.x, currentNodePosition);
-                        nodeDiff.x += neighborDeltas.x;
-                        nodeDiff.y += neighborDeltas.y;
-                        nodeDiff.z += neighborDeltas.z;
-                    }
+                        //we're in bounds, check individual tex coords
+                        vec4 possibleNeighbors = texture2D(edges,vec2(currentX,currentY));
 
-                    //check y component
-                    if((edgeIndex > beginCell && endComponent > 1.0) ||
-                        (edgeIndex == beginCell && beginComponent <= 1.0)){
-                        vec3 neighborDeltas = samplePositionTexture(possibleNeighbors.y, currentNodePosition);
-                        nodeDiff.x += neighborDeltas.x;
-                        nodeDiff.y += neighborDeltas.y;
-                        nodeDiff.z += neighborDeltas.z;
-                    }
+                        //check to see if we're in the right cell
+                        if(edgeIndex >= beginCell && edgeIndex <= endCell){
 
-                    //check z component
-                    if((edgeIndex > beginCell && endComponent > 2.0) ||
-                        (edgeIndex == beginCell && beginComponent <= 2.0)){
-                        vec3 neighborDeltas = samplePositionTexture(possibleNeighbors.z, currentNodePosition);
-                        nodeDiff.x += neighborDeltas.x;
-                        nodeDiff.y += neighborDeltas.y;
-                        nodeDiff.z += neighborDeltas.z;
-                    }
+                            //check x component
+                            if((edgeIndex > beginCell && endComponent > 0.0) ||
+                                (edgeIndex == beginCell && beginComponent <= 0.0 && (endComponent > 0.0  || endCell > beginCell))){
+                                vec3 neighborDeltas = samplePositionTexture(possibleNeighbors.x, currentNodePosition);
+                                nodeDiff.x += neighborDeltas.x;
+                                nodeDiff.y += neighborDeltas.y;
+                                nodeDiff.z += neighborDeltas.z;
+                            }
 
-                    //check w component
-                    if((edgeIndex > beginCell && endComponent > 3.0) ||
-                        (edgeIndex == beginCell && beginComponent <= 3.0)){
-                        vec3 neighborDeltas = samplePositionTexture(possibleNeighbors.w, currentNodePosition);
-                        nodeDiff.x += neighborDeltas.x;
-                        nodeDiff.y += neighborDeltas.y;
-                        nodeDiff.z += neighborDeltas.z;
-                    }
+                            //check y component
+                            if((edgeIndex > beginCell && endComponent > 1.0) ||
+                                (edgeIndex == beginCell && beginComponent <= 1.0 && (endComponent > 1.0  || endCell > beginCell))){
+                                vec3 neighborDeltas = samplePositionTexture(possibleNeighbors.y, currentNodePosition);
+                                nodeDiff.x += neighborDeltas.x;
+                                nodeDiff.y += neighborDeltas.y;
+                                nodeDiff.z += neighborDeltas.z;
+                            }
 
-                }
+                            //check z component
+                            if((edgeIndex > beginCell && endComponent > 2.0) ||
+                                (edgeIndex == beginCell && beginComponent <= 2.0 && (endComponent > 2.0  || endCell > beginCell))){
+                                vec3 neighborDeltas = samplePositionTexture(possibleNeighbors.z, currentNodePosition);
+                                nodeDiff.x += neighborDeltas.x;
+                                nodeDiff.y += neighborDeltas.y;
+                                nodeDiff.z += neighborDeltas.z;
+                            }
 
-                //increment the edge so we know where we are
-                edgeIndex += 1.0;
-            }
-        }
+                            //check w component
+                            if((edgeIndex > beginCell && endComponent > 3.0) ||
+                                (edgeIndex == beginCell && beginComponent <= 3.0 && (endComponent > 3.0 || endCell > beginCell))){
+                                vec3 neighborDeltas = samplePositionTexture(possibleNeighbors.w, currentNodePosition);
+                                nodeDiff.x += neighborDeltas.x;
+                                nodeDiff.y += neighborDeltas.y;
+                                nodeDiff.z += neighborDeltas.z;
+                            }
 
-        if(nodeDiff.x != 0.0 && nodeDiff.y != 0.0 && nodeDiff.z != 0.0){
+                        }
+
+                        //increment the edge so we know where we are
+                        edgeIndex += 1.0;
+                    }//edge tex loop
+                }//edge tex loop
+            }//if there are edges going to this node
+
+        }//if this isn't an empty node
+
+        if(!(nodeDiff.x == 0.0 && nodeDiff.y == 0.0 && nodeDiff.z == 0.0)){
             nodeDiff = normalize(nodeDiff);
             gl_FragColor = vec4(currentNodePosition.x + nodeDiff.x * 0.1, currentNodePosition.y + nodeDiff.y * 0.1, currentNodePosition.z + nodeDiff.z * 0.1, 0 );
         }

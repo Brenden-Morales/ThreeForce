@@ -10,16 +10,30 @@ var Edges;
 var texSize;
 var sim;
 
+var cloud;
+var cloudLines;
+
 var cloudMaterial;
 var edgeMaterial;
+var edgesVisible = true;
 
 var gridSize = 40;
 
 var simulate = false;
 
+
 nodes = [
-    [1],[2],[0,3],[0]
-]
+    [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]
+];
+
+nodes = [
+    []
+];
+
+for(var i = 1; i <= 4000; i ++){
+    nodes[0].push(i);
+    nodes.push([]);
+}
 
 //when the user hits the spacebar stop/start the simulation
 document.onkeypress = function(e){
@@ -31,6 +45,15 @@ document.onkeypress = function(e){
             simulate = true;
         }
     }
+    if(e.charCode === 108){
+        if(edgesVisible){
+            scene.remove(cloudLines);
+        }
+        else{
+            scene.add(cloudLines);
+        }
+        edgesVisible = !edgesVisible;
+    }
 };
 
 var initialize = function(){
@@ -41,7 +64,7 @@ var initialize = function(){
     document.body.appendChild(renderer.domElement);
 
     //camera
-    camera = new THREE.PerspectiveCamera(60,window.innerWidth / window.innerHeight,10,500);
+    camera = new THREE.PerspectiveCamera(60,window.innerWidth / window.innerHeight,10,1000);
     camera.position.z = 100;
 
     camera.position.y = 100;
@@ -57,10 +80,8 @@ var initialize = function(){
     NP = new NodeProcessor();
     var InitialPositions = NP.makePositionTexture(nodes);
     EdgeIndices = NP.makeEdgePointerTexture(nodes);
-    console.log(EdgeIndices);
     Edges = NP.makeEdgeTexture(nodes);
-    console.log(Edges);
-    texSize = NP.halfTextureSize(nodes);
+    texSize = NP.halfTextureSize(nodes.length);
 
     sim = new PingPong({
         renderer : renderer,
@@ -111,8 +132,8 @@ var initialize = function(){
 
             //wow this is dumb, this is how glsl indexes texture positions, as a fraction of the overall length
             //instead of something sane like an integer based index
-            texPoses[v * 2] = (Math.floor(v / texSize)) / texSize;
-            texPoses[(v * 2) + 1] = (v % texSize) / texSize;
+            texPoses[v * 2] = (v % texSize) / texSize;
+            texPoses[(v * 2) + 1] = (Math.floor(v / texSize)) / texSize;
             //nevermind that's actually pretty smart?
 
             //whatever, copypasta'ed code
@@ -177,8 +198,8 @@ var initialize = function(){
 
         for(var i = 0; i < nodes.length; i ++){
             //get the starting texture position (will be the same for all in this node)
-            var texStartX = (Math.floor(i / texSize)) / texSize;
-            var texStartY = (i % texSize) / texSize;
+            var texStartX = (i % texSize) / texSize;
+            var texStartY = (Math.floor(i / texSize)) / texSize;
 
             //now we get all the endpoints and put in the data
             for(var j = 0; j < nodes[i].length; j ++){
@@ -192,8 +213,8 @@ var initialize = function(){
                 //go to next vertex
                 currentVertex++;
                 //first do the start point
-                textureIndices[currentVertex * 2] = (Math.floor(nodes[i][j]/ texSize)) / texSize;;
-                textureIndices[currentVertex * 2 + 1] = (nodes[i][j] % texSize) / texSize;
+                textureIndices[currentVertex * 2] = (nodes[i][j] % texSize) / texSize;
+                textureIndices[currentVertex * 2 + 1] = (Math.floor(nodes[i][j]/ texSize)) / texSize;;
                 //position
                 positions[currentVertex * 3] = 0;
                 positions[currentVertex * 3 + 1] = 0;
@@ -205,8 +226,8 @@ var initialize = function(){
         geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
         geometry.addAttribute( 'texPos', new THREE.BufferAttribute( textureIndices, 2 ) );
 
-        var mesh = new THREE.Line( geometry, edgeMaterial );
-        scene.add( mesh );
+        cloudLines = new THREE.Line( geometry, edgeMaterial,THREE.LinePieces);
+        scene.add( cloudLines );
     };
 
     makeEdges();

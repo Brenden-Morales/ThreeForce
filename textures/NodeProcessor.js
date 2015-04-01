@@ -8,6 +8,12 @@ var NodeProcessor = function(options) {
     var self = this instanceof NodeProcessor ? this : Object.create(NodeProcessor.prototype);
 
     self.makePositionTexture = function(nodes){
+
+        var randomNegative = function(){
+            if(Math.random() <= 0.5) return -1;
+            else return 1;
+        }
+
         //get the width we need to make the texture
         var width = this.halfTextureSize(nodes.length);
         //make the texture, all nodes start @ origin
@@ -15,13 +21,14 @@ var NodeProcessor = function(options) {
         for(var i = 0; i < textureArray.length; i ++){
             if(i < nodes.length * 4){
                 //0 for nodes / pixels we're actually using
-                textureArray[i] = Math.random() * 10;
+                textureArray[i] = Math.random() * 70 * randomNegative();
             }
             else{
                 //-1 for ones we're not
                 textureArray[i] = -1;
             }
         }
+        console.log(textureArray);
         return this.makeThreeTexture(textureArray,width);
     };
 
@@ -52,6 +59,7 @@ var NodeProcessor = function(options) {
         for(var i = nodes.length * 4; i < textureArray.length; i ++){
             textureArray[i] = -1;
         }
+        console.log(textureArray);
         return this.makeThreeTexture(textureArray,width);
     };
 
@@ -69,6 +77,7 @@ var NodeProcessor = function(options) {
         for(var i = currentIndex; i < textureArray.length; i ++){
             textureArray[i] = -1;
         }
+        console.log(textureArray);
         return this.makeThreeTexture(textureArray,width);
     };
 
@@ -77,10 +86,10 @@ var NodeProcessor = function(options) {
 
 NodeProcessor.prototype.halfTextureSize = function(num){
     var power = 1;
-    while(power < num){
+    while(power * power < num){
         power *= 2;
     }
-    return power / 2 > 1 ? power / 2 : 2;
+    return power / 2 > 1 ? power : 2;
 };
 
 NodeProcessor.prototype.edgeTextureSize = function(nodes){
