@@ -21,14 +21,13 @@ var NodeProcessor = function(options) {
         for(var i = 0; i < textureArray.length; i ++){
             if(i < nodes.length * 4){
                 //0 for nodes / pixels we're actually using
-                textureArray[i] = Math.random() * 70 * randomNegative();
+                textureArray[i] = Math.random() * 10 * randomNegative();
             }
             else{
                 //-1 for ones we're not
                 textureArray[i] = -1;
             }
         }
-        console.log(textureArray);
         return this.makeThreeTexture(textureArray,width);
     };
 
@@ -59,7 +58,6 @@ var NodeProcessor = function(options) {
         for(var i = nodes.length * 4; i < textureArray.length; i ++){
             textureArray[i] = -1;
         }
-        console.log(textureArray);
         return this.makeThreeTexture(textureArray,width);
     };
 
@@ -77,7 +75,6 @@ var NodeProcessor = function(options) {
         for(var i = currentIndex; i < textureArray.length; i ++){
             textureArray[i] = -1;
         }
-        console.log(textureArray);
         return this.makeThreeTexture(textureArray,width);
     };
 
