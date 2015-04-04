@@ -26,10 +26,33 @@ nodes = [
     []
 ];
 
-for(var i = 1; i <= 1000; i ++){
+for(var i = 1; i <= 500; i ++){
     nodes[i-1].push(i);
     nodes.push([]);
 }
+
+var uiElements = {
+    iterations : 1,
+    c : 1.0,
+    n : 2,
+    c2 : 1.0,
+    n2 : 10.0
+
+};
+
+function initGUI(){
+    var gui = new dat.GUI();
+    gui.add(uiElements,"iterations",1,50).step(1);
+    var repulsiveForce = gui.addFolder("Repulsive Force = c / distance^n");
+    repulsiveForce.add(uiElements,"c",1,50).onChange(function(value){sim.particleShader.uniforms.repulsionC.value = value});
+    repulsiveForce.add(uiElements,"n",1,4,1).step(1).onChange(function(value){sim.particleShader.uniforms.repulsionN.value = value});
+    repulsiveForce.open();
+    var attractiveForce = gui.addFolder("Attractive Force = c2 * log(distance / n2)");
+    attractiveForce.add(uiElements,"c2",1,20).onChange(function(value){sim.particleShader.uniforms.attractionC.value = value});
+    attractiveForce.add(uiElements,"n2",0,20).step(0.1).onChange(function(value){sim.particleShader.uniforms.attractionN.value = value});
+    attractiveForce.open();
+}
+
 
 //when the user hits the spacebar stop/start the simulation
 document.onkeypress = function(e){
@@ -53,6 +76,7 @@ document.onkeypress = function(e){
 };
 
 var initialize = function(){
+    initGUI();
     // renderer
     renderer = new THREE.WebGLRenderer( { antialias: false } );
     renderer.setPixelRatio( window.devicePixelRatio );
@@ -90,7 +114,11 @@ var initialize = function(){
             edges : {type : "t", value : Edges},
             delta : {type : "f", value : null},
             textureWidth : {type : "f", value : texSize},
-            resolution : {type : "v2", value : new THREE.Vector2(texSize,texSize)}
+            resolution : {type : "v2", value : new THREE.Vector2(texSize,texSize)},
+            repulsionC : {type : "f", value : 1.0},
+            repulsionN : {type : "f", value : 2.0},
+            attractionC : {type : "f", value : 1.0},
+            attractionN : {type : "f", value : 10.0}
         }
     });
     sim.initialize(InitialPositions);
@@ -271,10 +299,13 @@ function render(){
     var previousTime = now;
 
     if(simulate){
-        sim.renderTexture({
-            delta : delta,
-            positions : sim.activeTexture
-        });
+        for(var i = 0; i < uiElements.iterations; i ++){
+            sim.renderTexture({
+                delta : delta,
+                positions : sim.activeTexture
+            });
+        }
+
         cloudMaterial.uniforms.positionTexture.value = sim.activeTexture;
     }
     renderer.render(scene,camera);
