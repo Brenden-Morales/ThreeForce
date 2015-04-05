@@ -39,6 +39,8 @@
     uniform float repulsionN;
     uniform float attractionC;
     uniform float attractionN;
+    uniform float friction;
+    uniform float gravity;
 
     //TODO ADD FRICTION
     //TODO ADD A GRAVITY FACTOR THAT PULLS EVERYTHING TO ORIGIN
@@ -59,16 +61,15 @@
     }
 
     vec3 getAttractiveForce(vec4 neighbor, vec4 curr){
-        float distanceToNeighbor =  attractionC * log(distance(curr,neighbor) / attractionN);
+        float distanceToNeighbor =  max(0.0,((attractionC * log(distance(curr,neighbor) / attractionN)) - friction));
         vec3 angleToNeighbor = normalize((curr - neighbor).xyz);
         return angleToNeighbor * distanceToNeighbor;
     }
 
     vec3 getRepulsiveForce(vec4 currentNode,vec4 compareNode){
-        float nodeDistance = distance(compareNode,currentNode);
+        float nodeDelta = max(0.0,((repulsionC / pow(distance(compareNode,currentNode),repulsionN))) - friction);
         vec3 nodeAngle = normalize((currentNode - compareNode).xyz);
-        return nodeAngle * (repulsionC / pow(nodeDistance,repulsionN));
-
+        return nodeAngle * nodeDelta;
     }
 
     void main()	{
@@ -137,7 +138,7 @@
                                 (edgeIndex == beginCell && beginComponent <= 0.0 && (endComponent > 0.0  || endCell > beginCell))){
                                 vec4 neighbor = getNeighbor(possibleNeighbors.x);
                                 nodeDiff.xyz -= getAttractiveForce(neighbor, currentNodePosition);
-                                nodeDiff.xyz -= getRepulsiveForce(currentNodePosition,neighbor);
+                                //nodeDiff.xyz -= getRepulsiveForce(currentNodePosition,neighbor);
                             }
 
                             //check y component
@@ -145,7 +146,7 @@
                                 (edgeIndex == beginCell && beginComponent <= 1.0 && (endComponent > 1.0  || endCell > beginCell))){
                                 vec4 neighbor = getNeighbor(possibleNeighbors.y);
                                 nodeDiff.xyz -= getAttractiveForce(neighbor, currentNodePosition);
-                                nodeDiff.xyz -= getRepulsiveForce(currentNodePosition,neighbor);
+                                //nodeDiff.xyz -= getRepulsiveForce(currentNodePosition,neighbor);
                             }
 
                             //check z component
@@ -153,7 +154,7 @@
                                 (edgeIndex == beginCell && beginComponent <= 2.0 && (endComponent > 2.0  || endCell > beginCell))){
                                 vec4 neighbor = getNeighbor(possibleNeighbors.z);
                                 nodeDiff.xyz -= getAttractiveForce(neighbor, currentNodePosition);
-                                nodeDiff.xyz -= getRepulsiveForce(currentNodePosition,neighbor);
+                                //nodeDiff.xyz -= getRepulsiveForce(currentNodePosition,neighbor);
                             }
 
                             //check w component
@@ -161,7 +162,7 @@
                                 (edgeIndex == beginCell && beginComponent <= 3.0 && (endComponent > 3.0 || endCell > beginCell))){
                                 vec4 neighbor = getNeighbor(possibleNeighbors.w);
                                 nodeDiff.xyz -= getAttractiveForce(neighbor, currentNodePosition);
-                                nodeDiff.xyz -= getRepulsiveForce(currentNodePosition,neighbor);
+                                //nodeDiff.xyz -= getRepulsiveForce(currentNodePosition,neighbor);
                             }
 
                         }
@@ -173,6 +174,9 @@
             }//if there are edges going to this node
 
         }//if this isn't an empty node
+
+        //calculate gravity
+        nodeDiff.xyz -= currentNodePosition.xyz * gravity;
 
         gl_FragColor = vec4(currentNodePosition.x + nodeDiff.x, currentNodePosition.y + nodeDiff.y, currentNodePosition.z + nodeDiff.z, 0 );
 
@@ -247,6 +251,7 @@
     <title></title>
 </head>
 <body style="width:100%;height:100%;margin:0px;padding:0px;overflow:hidden" onload="initialize()">
-<div id="container"></div>
+<div style="position:absolute;top:0;text-align:center;width:100%;z-index:100;color:white"><b>4,000 particles</b><br>Press Space to Stop / Start simulation<br>Mousewheel to zoom in / out<br>Left Click + drag: rotate camera<br>Right Click + drag: Pan camera</div>
+
 </body>
 </html>

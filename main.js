@@ -26,17 +26,19 @@ nodes = [
     []
 ];
 
-for(var i = 1; i <= 500; i ++){
-    nodes[i-1].push(i);
+for(var i = 1; i <= 4000; i ++){
+    //nodes[0].push(i);
     nodes.push([]);
 }
 
 var uiElements = {
     iterations : 1,
-    c : 1.0,
+    c : 25.0,
     n : 2,
     c2 : 1.0,
-    n2 : 10.0
+    n2 : 10.0,
+    friction : 0.017,
+    gravity :0.01
 
 };
 
@@ -51,6 +53,12 @@ function initGUI(){
     attractiveForce.add(uiElements,"c2",1,20).onChange(function(value){sim.particleShader.uniforms.attractionC.value = value});
     attractiveForce.add(uiElements,"n2",0,20).step(0.1).onChange(function(value){sim.particleShader.uniforms.attractionN.value = value});
     attractiveForce.open();
+    var friction = gui.addFolder("Friction");
+    friction.add(uiElements,"friction",0,0.5).onChange(function(value){sim.particleShader.uniforms.friction.value = value});
+    friction.open();
+    var gravity = gui.addFolder("Gravity");
+    gravity.add(uiElements,"gravity",0,0.5).onChange(function(value){sim.particleShader.uniforms.gravity.value = value});
+    gravity.open();
 }
 
 
@@ -85,9 +93,9 @@ var initialize = function(){
 
     //camera
     camera = new THREE.PerspectiveCamera(60,window.innerWidth / window.innerHeight,10,1000);
-    camera.position.z = 100;
+    camera.position.z = 500;
 
-    camera.position.y = 100;
+    camera.position.y = 500;
     //controls
     controls = new THREE.OrbitControls( camera );
     controls.damping = 0.2;
@@ -115,10 +123,12 @@ var initialize = function(){
             delta : {type : "f", value : null},
             textureWidth : {type : "f", value : texSize},
             resolution : {type : "v2", value : new THREE.Vector2(texSize,texSize)},
-            repulsionC : {type : "f", value : 1.0},
+            repulsionC : {type : "f", value : 25.0},
             repulsionN : {type : "f", value : 2.0},
             attractionC : {type : "f", value : 1.0},
-            attractionN : {type : "f", value : 10.0}
+            attractionN : {type : "f", value : 10.0},
+            friction : {type : "f", value : 0.017},
+            gravity : {type : "f", value : 0.01}
         }
     });
     sim.initialize(InitialPositions);
