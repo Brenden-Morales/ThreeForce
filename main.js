@@ -27,9 +27,10 @@ nodes = [
 ];
 
 for(var i = 1; i <= 4000; i ++){
-    //nodes[0].push(i);
+    nodes[i-1].push(i);
     nodes.push([]);
 }
+
 
 var uiElements = {
     iterations : 1,
@@ -202,7 +203,7 @@ var initialize = function(){
     edgeMaterial = new THREE.ShaderMaterial( {
         uniforms:{
             positionTexture:   { type: "t", value: null },
-            color : {type : 'c', value : new THREE.Color(0x999999)}
+            color : {type : 'c', value : new THREE.Color(0xffffff)}
         },
         attributes:{
             texPos : {type : "v2", value : null}
